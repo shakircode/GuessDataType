@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:tls="http://www.mulesoft.org/schema/mule/tls" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="d28d9839-d50a-4765-8742-d8bc785aceaf" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<flow name="guessdatatypeFlow" doc:id="11d032ad-8f0e-4a97-96be-8e863747c865" >
+		<http:listener doc:name="GET /home" doc:id="aef0c736-9f7c-4881-927f-cf0e2af45d5e" config-ref="HTTP_Listener_config" path="/home"/>
+		<parse-template doc:name="Home Page" doc:id="90ac27db-e692-4332-9106-2b8dd8e56145" >
+			<content >&lt;html&gt;
+ &lt;head&gt;&lt;title&gt;Guess The DataType&lt;/title&gt;&lt;/head&gt;
+ &lt;style&gt;
+     body
+      {
+            background-color: rgb(0, 184, 230);
+        }
+         input[type=submit] {
+  background-color: #0e0f0e;
+  border: none;
+  color: white;
+  padding: 16px 32px;
+  text-decoration: none;
+  margin: 4px 2px;
+  cursor: pointer;
+}
+ &lt;/style&gt;
+ &lt;body&gt;
+  &lt;center&gt;
+    &lt;h1&gt;Guess the Data Type&lt;/h1&gt;
+    &lt;p style=&quot;font-family: Arial, Helvetica, sans-serif;&quot;&gt;Here's an interesting way to Learn about different Data Formats and &lt;br&gt;it's type which can be used to solve Dataweave Transformations.&lt;br&gt;&lt;br&gt;Let's get Started&lt;/p&gt;&lt;/center&gt;  
+    &lt;form action = &quot;http://localhost:8081/second&quot;&gt;
+  &lt;center&gt;&lt;input type= &quot;submit&quot; value = &quot;Click Here to Get Started&quot;&gt;&lt;/center&gt;&lt;/form&gt;
+  &lt;/body&gt;
+&lt;html&gt;</content>
+		</parse-template>
+	</flow>
+	<flow name="guessdatatypeFlow1" doc:id="9a658d6a-ec41-49a1-9802-4bd694665085" >
+		<http:listener doc:name="Listener" doc:id="64b8d5ff-4e6d-4415-b6c4-1e237bdfab52" config-ref="HTTP_Listener_config" path="/second"/>
+		<parse-template doc:name="Guess DataType" doc:id="f48c1448-3d59-413a-8d5c-2a40abed41d0">
+			<content>&lt;html&gt;
+ &lt;head&gt;&lt;title&gt;Guess The Type&lt;/title&gt;&lt;/head&gt;
+ &lt;style&gt;
+     html {
+         background-color: black;
+         color: rgb(0, 184, 230);
+     }
+     input[type=text] {
+  background-color: white;
+  border: 1px solid black;
+  color: black;
+  padding: 16px 32px;
+  text-decoration: none;
+  margin: 4px 2px;
+}
+input[type=submit] {
+   background-color:rgb(0, 184, 230);
+  border: 1px solid black;
+  border-radius: 0.25em;
+  color:white;
+  padding: 16px 32px;
+  text-decoration: none;
+  margin: 4px 2px;
+  cursor: pointer;
+}
+ &lt;/style&gt;
+ &lt;body&gt;
+  &lt;center&gt;
+  &lt;p style=&quot;font-family: Arial, Helvetica, sans-serif;&quot;&gt;Fill Data and Guess the DataType&lt;/p&gt;
+  &lt;form action = &quot;http://localhost:8081/third&quot;&gt;
+  &lt;input type = &quot;text&quot; name= &quot;gendata&quot; placeholder = &quot;Ex:[1,2] or &lt;abc&gt;1&lt;abc&gt;&quot;&gt;
+  &lt;input type = &quot;text&quot; id =&quot;answer&quot; name = &quot;answer&quot; placeholder = &quot;Type-Hint(Array,Object etc)&quot;&gt;
+  &lt;input type = &quot;submit&quot; value = &quot;Submit&quot;&gt; &lt;/form&gt;
+  &lt;/center&gt;
+  &lt;/body&gt;
+&lt;html&gt;</content>
+		</parse-template>
+	</flow>
+	<flow name="guessdatatypeFlow2" doc:id="462c0e79-2af4-475d-a524-9899c27f1b51" >
+		<http:listener doc:name="Listener" doc:id="abb88cb6-b164-4e46-b95f-a44f6bcea381" config-ref="HTTP_Listener_config" path="/third"/>
+		<ee:transform doc:name="Validate the data and dataType" doc:id="b20faa78-a061-416f-b6cf-cece01d4247c">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+
+---
+if((isEmpty(attributes.queryParams.gendata))
+	 and(isEmpty(attributes.queryParams.answer)))"No Data" else
+if((isEmpty(attributes.queryParams.gendata))
+	 or(isEmpty(attributes.queryParams.answer)))"Please Enter Complete Data" else  
+ if((attributes.queryParams.gendata startsWith "[")
+	 and(attributes.queryParams.answer == "Array"))true else
+if((attributes.queryParams.gendata startsWith "{")
+	 and(attributes.queryParams.answer == "Object"))true  else
+ if((attributes.queryParams.gendata startsWith "<")
+	 and(attributes.queryParams.answer == "Object"))true else
+if((typeOf(attributes.queryParams.gendata)  ~= "String")
+	 and(attributes.queryParams.answer == "String"))true else
+if((attributes.queryParams.gendata matches /([0-9])/ ) and (attributes.queryParams.answer == "Number"))true else 
+	  
+if((attributes.queryParams.gendata startsWith  "[") and  (attributes.queryParams.gendata endsWith "]"))"Wrong Answer" else
+
+if((attributes.queryParams.gendata startsWith  "{") and  (attributes.queryParams.gendata endsWith "}"))"Wrong Answer" else
+if((attributes.queryParams.gendata startsWith  "<") and  (attributes.queryParams.gendata endsWith ">"))"Wrong Answer"else false
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<choice doc:name="Choice" doc:id="48b91fc7-2566-455e-89bc-ee898ff60bf6">
+			<when expression="#[payload  == true]">
+				<http:load-static-resource doc:name="Right Answer" doc:id="b82c5cc9-ca05-4325-ad55-7ac4e4a1f6bb" resourceBasePath="C:\Users\yourusername\AnypointStudio\studio-workspace\guessdatatype\src\main\resources\index.html"/>
+			</when>
+			<when expression='#[payload == "No Data"]'>
+				<http:load-static-resource doc:name="No Data" doc:id="8bb8c08e-9de4-496f-b521-f6dfc7e129e0" resourceBasePath="C:\Users\yourusername\AnypointStudio\studio-workspace\guessdatatype\src\main\resources\index1.html" defaultFile="index1.html"/>
+			</when>
+			<when expression='#[payload  == "Please Enter Complete Data"]'>
+				<http:load-static-resource doc:name="Provide Complete Data" doc:id="6d5aa037-c7fa-4d37-9f69-aa9dabb57e50" resourceBasePath="C:\Users\yourusername\AnypointStudio\studio-workspace\guessdatatype\src\main\resources\index2.html" defaultFile="index2.html"/>
+			</when>
+			<when expression='#[payload == "Wrong Answer"]'>
+				<http:load-static-resource doc:name="Wrong Answer" doc:id="4d0676bd-42db-45d7-b69c-f3783a687ba3" resourceBasePath="C:\Users\yourusername\AnypointStudio\studio-workspace\guessdatatype\src\main\resources\index4.html" defaultFile="index4.html" />
+			</when>
+			<otherwise>
+				<http:load-static-resource doc:name="Invalid Data" doc:id="09838e85-1583-4ff2-80e6-ad0058203da4" resourceBasePath="C:\Users\yourusername\AnypointStudio\studio-workspace\guessdatatype\src\main\resources\index3.html" defaultFile="index3.html" />
+			</otherwise>
+		</choice>
+	</flow>
+</mule>
